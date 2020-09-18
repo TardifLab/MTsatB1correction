@@ -1,16 +1,16 @@
-This MATLAB code is designed to generate a correction curve to be able to correct MTsat for B1 errors. 
-Requirements:
+### This MATLAB code is designed to generate a correction curve to be able to correct MTsat for B1 errors. 
+#### Requirements:
     - MTsat data (MT-weighted image, low flip angle and high flip angle image)
     - relative B1 map (where the prescribed B1 value == 1)
     - Load/Save MRI data: https://github.com/ulrikls/niak (If you use other code, you will just need to change the load and save functions)
     - For datafitting: poltfitn toolbox https://www.mathworks.com/matlabcentral/fileexchange/34765-polyfitn
     - and get equation from https://www.mathworks.com/matlabcentral/fileexchange/9577-symbolic-polynomial-manipulation
-Optional code to improve* image quality:
+##### Optional code to improve* image quality:
     - Denoising Matlab code: https://github.com/sunenj/MP-PCA-Denoising
     - Unring code: https://github.com/josephdviviano/unring)
     - Note* the sample data was already processed with the denoising and unringing code. 
 
-General Steps:
+#### General Steps:
     1. Simulate  the sequence with known timing and saturation parameters. 
          -> as in simSeq_M0b_R1obs.m
     2. Generate MTsat and R1 values for 1 subject, making sure all flip angles used in the calculation are modified for relative B1. (flip angle achieved = flip angle prescribed at scanner multiplied by the B1map value). 

@@ -8,10 +8,10 @@
     - For datafitting: poltfitn toolbox https://www.mathworks.com/matlabcentral/fileexchange/34765-polyfitn
     - and get equation from https://www.mathworks.com/matlabcentral/fileexchange/9577-symbolic-polynomial-manipulation
 
-**Optional code to improve* image quality:**
+**Optional code to improve image quality:**
     - Denoising Matlab code: https://github.com/sunenj/MP-PCA-Denoising
     - Unring code: https://github.com/josephdviviano/unring)
-    - Note* the sample data was already processed with the denoising and unringing code. 
+    - Note the sample data was already processed with the denoising and unringing code. 
 
 ## General Steps:
     1. Simulate  the sequence with known timing and saturation parameters. 

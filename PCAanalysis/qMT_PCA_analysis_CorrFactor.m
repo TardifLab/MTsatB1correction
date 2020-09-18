@@ -22,12 +22,15 @@ Params.flipAngle = 9; % excitation flip angle water.
 % B1 = 3.26; % in microtesla
 % Params.delta = 2000;
 % Params.freqPattern = 'single'; % options: 'single', 'dualAlternate', 'dualContinuous'
+% Params.SatPulseShape = 'gaussian'; % options: 'hanning', 'gaussian', 'square'
 
 Params.numSatPulse = 2;
 Params.pulseDur = 0.768/1000; %duration of 1 MT pulse in seconds
 Params.freqPattern = 'single'; % options: 'single', 'dualAlternate', 'dualContinuous'
 Params.delta = 7000;
 B1 = 8.5; % in microtesla
+Params.SatPulseShape = 'hanning'; % options: 'hanning', 'gaussian', 'square'
+
 
 % simulation parameters
 b1_field = [0.7 0.8 0.9 1 1.1 1.2];

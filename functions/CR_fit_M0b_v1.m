@@ -45,7 +45,7 @@ fit_eqn = sprintf(fit_eqn, Raobs, Raobs, Raobs, Raobs, Raobs, Raobs, Raobs, Raob
                , Raobs, Raobs, Raobs, Raobs, Raobs, Raobs, Raobs, Raobs);
 
 
-opts = fitoptions( 'Method', 'NonlinearLeastSquares','Upper',0.2,'Lower',0.0,'StartPoint',0.1);
+opts = fitoptions( 'Method', 'NonlinearLeastSquares','Upper',0.5,'Lower',0.0,'StartPoint',0.1);
 opts.Robust = 'Bisquare';
 
 myfittype = fittype( fit_eqn ,'dependent', {'z'}, 'independent',{'b1'},'coefficients', {'M0b'}); 

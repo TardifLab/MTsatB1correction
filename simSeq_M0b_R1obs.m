@@ -189,9 +189,9 @@ figure; imshow3Dfull(z - MTsat_sim, [-0.005 0.005],jet)
 
 % figure; imshow3Dfull(MTsat_sim, [0 0.1],jet)
 
-% save the fit values for use
-save('fitValue_fn.mat','fitValues')
-save('MTsatValue_fn.mat','MTsat_sim')
+% save the fit values for use based on filenames on lines 16,17
+save(fitValue_fn,'fitValues')
+save(MTsatValue_fn,'MTsat_sim')
 
 
 

@@ -5,7 +5,7 @@
 - MTsat data (MT-weighted image, low flip angle and high flip angle image)
 - relative B1 map (where the prescribed B1 value == 1)
 - Load/Save MRI data: https://github.com/ulrikls/niak (If you use other code, you will just need to change the load and save functions)
-- For datafitting: poltfitn toolbox https://www.mathworks.com/matlabcentral/fileexchange/34765-polyfitn
+- For datafitting: polyfitn toolbox https://www.mathworks.com/matlabcentral/fileexchange/34765-polyfitn
 - and get equation from https://www.mathworks.com/matlabcentral/fileexchange/9577-symbolic-polynomial-manipulation
 
 **Optional code to improve image quality:**

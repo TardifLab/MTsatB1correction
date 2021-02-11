@@ -134,7 +134,7 @@ for i = 1:size(lfa,1)
             
             if mask(i,j,k) > 0 
 
-                [M0b_app(i,j,k),fit_qual(i,j,k),comb_res(i,j,k)] = CR_fit_M0b_v1( b1_3p26(i,j,k), R1_s(i,j,k), MTsat(i,j,k),fitValues); 
+                [M0b_app(i,j,k),fit_qual(i,j,k),comb_res(i,j,k)] = CR_fit_M0b_v1( b1_rms*b1(i,j,k), R1_s(i,j,k), MTsat(i,j,k),fitValues); 
 
             end
         end
@@ -171,7 +171,7 @@ ft = fittype('poly1');
     [R,P]= corrcoef([tmp, tmp_r1],'Alpha',0.05,'Rows','complete') ;
     contrast_fit(1,1) = R(2,1);
     contrast_fit(1,2) = P(2,1);
-    fitvals_dual = coeffvalues(M0b_d_fit);
+    fitvals_Msat = coeffvalues(M0b_d_fit);
         
     figure;
     heatscatter(tmp_r1,tmp, 1,'.')
@@ -179,7 +179,7 @@ ft = fittype('poly1');
     ylim([0 0.16])
     hold on
     plot(M0b_d_fit,'fit',0.95);
-    caption = sprintf('M_{0,app}^B = %.2g * R_1 %.2g', fitvals_dual(1), fitvals_dual(2));
+    caption = sprintf('M_{0,app}^B = %.2g * R_1 %.2g', fitvals_Msat(1), fitvals_Msat(2));
     text(0.45, 0.149, caption, 'FontSize', 16);    
     caption2 = sprintf('r = %.2f', contrast_fit(1,1));
     text(0.78, 0.135, caption2, 'FontSize', 16);
@@ -192,6 +192,6 @@ ft = fittype('poly1');
   
     
 %% Now add these regression equations to the fitValues structure and save. 
-fitValues.Est_M0b_from_R1 = strcat( num2str(fitvals2k(1)),' *Raobs + ',num2str(fitvals2k(2)));
+fitValues.Est_M0b_from_R1 = strcat( num2str(fitvals_Msat(1)),' *Raobs + ',num2str(fitvals_Msat(2)));
 save(strcat(fitvalsDir,'fitValues.mat'),'fitValues')
 

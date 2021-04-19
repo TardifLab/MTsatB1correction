@@ -16,16 +16,25 @@ folder = fileparts(which(mfilename));
 % Add that folder plus all subfolders to the path.
 addpath(genpath(folder));
 
-%% load images
+%% Set up directories
 DATADIR = '/folder/where/your/images/are/';
 
-% image names
+% Output figures
+OutputDirectory = '/folder/';
+
+% load in the fit results from simSeq_M0b_R1obs.m
+% makes sure to find the file names/locations where you made the values. 
+fitvalsDir = '/FileDirectory/'; %-> USER DEFINED
+fitValues = load(strcat(fitvalsDir,'fitValues.mat')); % -> USER DEFINED
+fitValues = fitValues.fitValues; % may or maynot need this line depending on how it saves
+
+%% image names
 seg_fn = {'hfa.mnc.gz' 'lfa.mnc.gz' 'mtw_img.mnc.gz'}; 
 
 %load the images your favourite way
-[hdr, hfa] = niak_read_minc(strcat(DATADIR,seg_fn{1}));
-[~, lfa] = niak_read_minc(strcat(DATADIR,seg_fn{2}));
-[~, mtw] = niak_read_minc(strcat(DATADIR,seg_fn{3}));
+[hdr, hfa] = niak_read_vol(strcat(DATADIR,seg_fn{1}));
+[~, lfa] = niak_read_vol(strcat(DATADIR,seg_fn{2}));
+[~, mtw] = niak_read_vol(strcat(DATADIR,seg_fn{3}));
 
 % can check to see if it loaded properly, don't worry about orientation
 figure; imshow3Dfull(lfa, [200 600],jet)
@@ -36,7 +45,7 @@ figure; imshow3Dfull(lfa, [200 600],jet)
 b1_rms = [6.8];  % value in microTesla. Nominal value for the MTsat pulses 
 
 % load B1 map -> USER DEFINED
-[~, b1] = niak_read_minc(strcat(DATADIR,'b1field_filename.mnc'));
+[~, b1] = niak_read_vol(strcat(DATADIR,'b1field_filename.mnc'));
 
 % filter the b1 map if you wish. 
 b1 = imgaussfilt3(b1,1);
@@ -94,7 +103,8 @@ figure; imshow3Dfull(App , [2500 6000])
 
 % can export your T1 or R1 map here if you wish
 % note these results are in milliseconds (T1) or 1/ms (for R1)
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/R1.mnc'); niak_write_minc3D(hdr,R1);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/R1.mnc'); niak_write_vol(hdr,R1);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/App.mnc'); niak_write_vol(hdr,App);
 
 %% Generate MTsat maps for the MTw images. 
 % Inital Parameters
@@ -116,41 +126,60 @@ MTsat(MTsat<0) = 0;
 
 R1_s = R1*1000; % need to convert to 1/s from 1/ms
 
-% load in the fit results from simSeq_M0b_R1obs.m
-% makes sure to find the file names/locations where you made the values. 
-fitvalsDir = '/FileDirectory/'; %-> USER DEFINED
-fitValues = load(strcat(fitvalsDir,'fitValues.mat')); % -> USER DEFINED
-fitValues = fitValues.fitValues; % may or maynot need this line depending on how it saves
-
 % initialize matrices
 M0b_app = zeros(size(lfa));
 fit_qual = zeros(size(lfa));
 comb_res = zeros(size(lfa));
 
-tic % ~ expect a few hours
-for i = 1:size(lfa,1)
-    for j = 1:size(lfa,2) % for axial slices
-        for k = 1:size(lfa,3) % sagital slices
-            
-            if mask(i,j,k) > 0 
 
-                [M0b_app(i,j,k),fit_qual(i,j,k),comb_res(i,j,k)] = CR_fit_M0b_v1( b1_rms*b1(i,j,k), R1_s(i,j,k), MTsat(i,j,k),fitValues); 
+%New code added thanks to Ian Tagge to speed up with the parallel toolbox.
+% % accelerate!!!
+disp('starting fitting via parfor')
 
-            end
+% find indices of valid voxels
+q = find( (mask(:)>0));
+
+% make input arrays (length(q),1) from 3D volumes
+b1_ = b1(q);
+r1s = R1_s(q);
+mtsat = MTsat(q);
+
+% allocate output arrays
+mob = q.*0; fitq = mob; comb = mob;
+
+if license('test','distrib_computing_toolbox')
+    parfor qi = 1:length(q)
+        try
+             [mob(qi), fitq(qi), comb(qi)] = CR_fit_M0b_v1( b1_rms*b1_(qi), R1_s(qi), mtsat(qi),fitValues);
+        catch ME
+            disp(['qi:' num2str(qi) '; q: ' num2str(q(qi))])
+            disp(ME.message)
         end
     end
-    i % output to see it is running. 
+else
+
+    for qi = 1:length(q)
+        try
+             [mob(q), fitq(q), comb(q)]  = CR_fit_M0b_v1( b1_rms*b1_(q), R1_s(q), mtsat(q),fitValues);
+        catch ME
+            disp(['qi:' num2str(qi) '; q: ' num2str(q(qi))])
+            disp(ME.message)
+        end
+    end
 end
-toc 
+
+% return output arrays back into 3D volumes
+M0b_app(q) = mob;
+fit_qual(q) = fitq;
+comb_res(q) = comb;
 
 % view results
 figure; imshow3Dfull(M0b_app, [0 0.15],jet)
 
-
 % Save results incase you need to go back, since they take a while to generate!
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/M0b_2k.mnc'); niak_write_minc3D(hdr,M0b_app);
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/fit_qual_mask_2k.mnc'); niak_write_minc3D(hdr,fit_qual);
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/comb_residuals_2k.mnc'); niak_write_minc3D(hdr,comb_res);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/M0b.mnc'); niak_write_vol(hdr,M0b_app);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/fit_qual_mask.mnc'); niak_write_vol(hdr,fit_qual);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/comb_residuals.mnc'); niak_write_vol(hdr,comb_res);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Now make some plots of my fitted maps to see how they correlate with R1 values
@@ -189,6 +218,7 @@ ft = fittype('poly1');
     ylabel('M_{0,app}^B', 'FontSize', 20, 'FontWeight', 'bold')
     %colorbar('off')
     legend('hide')
+    saveas(gcf,strcat(OutputDirectory,'M0bvsR1.png'))
   
     
 %% Now add these regression equations to the fitValues structure and save. 

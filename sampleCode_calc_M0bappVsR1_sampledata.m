@@ -16,27 +16,33 @@ folder = fileparts(which(mfilename));
 % Add that folder plus all subfolders to the path.
 addpath(genpath(folder));
 
-%% load images
+%% Set up folder locations
+%% load MRI images
 DATADIR = '/folder/where/your/images/are/';
+% Output directory for figures
+OutputDirectory = '/folder/';
+% load in the fit results from simSeq_M0b_R1obs.m
+fitvalsDir = '/FileDirectory/';
 
+%%%%%%%%%%%% Code to run
 % image names
 seg_fn = {'hfa.mnc.gz' 'lfa.mnc.gz' 'dual_6p8.mnc.gz' 'dual_7p65.mnc.gz' 'dual_8p5.mnc.gz' 'dual_9p35.mnc.gz' 'pos_6p8.mnc.gz' 'pos_7p65.mnc.gz' 'pos_8p5.mnc.gz' 'irl_2k.mnc.gz'}; 
 
 %load the images your favourite way
-[hdr, hfa] = niak_read_minc(strcat(DATADIR,seg_fn{1}));
-[~, lfa] = niak_read_minc(strcat(DATADIR,seg_fn{2}));
+[hdr, hfa] = niak_read_vol(strcat(DATADIR,seg_fn{1}));
+[~, lfa] = niak_read_vol(strcat(DATADIR,seg_fn{2}));
 
-[~, mtw1_dual] = niak_read_minc(strcat(DATADIR,seg_fn{3}));
-[~, mtw2_dual] = niak_read_minc(strcat(DATADIR,seg_fn{4}));
-[~, mtw3_dual] = niak_read_minc(strcat(DATADIR,seg_fn{5}));
-[~, mtw4_dual] = niak_read_minc(strcat(DATADIR,seg_fn{6}));
+[~, mtw1_dual] = niak_read_vol(strcat(DATADIR,seg_fn{3}));
+[~, mtw2_dual] = niak_read_vol(strcat(DATADIR,seg_fn{4}));
+[~, mtw3_dual] = niak_read_vol(strcat(DATADIR,seg_fn{5}));
+[~, mtw4_dual] = niak_read_vol(strcat(DATADIR,seg_fn{6}));
 
-[~, mtw1_single] = niak_read_minc(strcat(DATADIR,seg_fn{7}));
-[~, mtw2_single] = niak_read_minc(strcat(DATADIR,seg_fn{8}));
-[~, mtw3_single] = niak_read_minc(strcat(DATADIR,seg_fn{9}));
-[~, mtw4_single] = niak_read_minc(strcat(DATADIR,seg_fn{10}));
+[~, mtw1_single] = niak_read_vol(strcat(DATADIR,seg_fn{7}));
+[~, mtw2_single] = niak_read_vol(strcat(DATADIR,seg_fn{8}));
+[~, mtw3_single] = niak_read_vol(strcat(DATADIR,seg_fn{9}));
+[~, mtw4_single] = niak_read_vol(strcat(DATADIR,seg_fn{10}));
 
-[~, mtw_2k] = niak_read_minc(strcat(DATADIR,seg_fn{11}));
+[~, mtw_2k] = niak_read_vol(strcat(DATADIR,seg_fn{11}));
 
 % can check to see if it loaded properly, don't worry about orientation
 figure; imshow3Dfull(lfa, [200 600],jet)
@@ -47,7 +53,7 @@ figure; imshow3Dfull(lfa, [200 600],jet)
 b1_rms = [6.8 7.65 8.5 9.35];  % value in microTesla. Nominal value for the MTsat pulses 
 
 % load B1 map
-[~, b1] = niak_read_minc(strcat(DATADIR,'b1field_filename.mnc'));
+[~, b1] = niak_read_vol(strcat(DATADIR,'b1field_filename.mnc'));
 
 % filter the b1 map if you wish. 
 b1 = imgaussfilt3(b1,1);
@@ -115,7 +121,7 @@ figure; imshow3Dfull(App , [2500 6000])
 
 % can export your T1 or R1 map here if you wish
 % note these results are in milliseconds (T1) or 1/ms (for R1)
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/R1.mnc'); niak_write_minc3D(hdr,R1);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/R1.mnc'); niak_write_vol(hdr,R1);
 
 %% Generate MTsat maps for the MTw images. 
 % Inital Parameters
@@ -163,28 +169,25 @@ pos = cat(4, msat_pos_6p8, msat_pos_7p65, msat_pos_8p5,msat_pos_9p35);
 
 R1_s = R1*1000; % need to convert to 1/s from 1/ms
 
-% load in the fit results from simSeq_M0b_R1obs.m
-% makes sure to find the file names/locations where you made the values. 
-fitvalsDir = '/FileDirectory/';
-
+%% makes sure to find the file names/locations where you made the values. 
 fitValues_single = load(strcat(fitvalsDir,'fitValues_7kHz_single.mat'));
-fitValues_dual = load(strcat(fitvalsDir,'fitValues_7kHz_dual.mat'));
-fitValues2k = load(strcat(fitvalsDir,'fitValues_2kHz.mat'));
+fitValues_dual   = load(strcat(fitvalsDir,'fitValues_7kHz_dual.mat'));
+fitValues2k      = load(strcat(fitvalsDir,'fitValues_2kHz.mat'));
 fitValues_single = fitValues_single.fitValues;
-fitValues_dual = fitValues_dual.fitValues;
-fitValues2k = fitValues2k.fitValues;
+fitValues_dual   = fitValues_dual.fitValues;
+fitValues2k      = fitValues2k.fitValues;
 
 % initialize matrices
-M0b_s = zeros(size(lfa));
-M0b_d = zeros(size(lfa));
+M0b_s  = zeros(size(lfa));
+M0b_d  = zeros(size(lfa));
 M0b_2k = zeros(size(lfa));
 
-fit_qual_s = zeros(size(lfa));
-fit_qual_d = zeros(size(lfa));
+fit_qual_s  = zeros(size(lfa));
+fit_qual_d  = zeros(size(lfa));
 fit_qual_2k = zeros(size(lfa));
 
-comb_res_s = zeros(size(lfa));
-comb_res_d = zeros(size(lfa));
+comb_res_s  = zeros(size(lfa));
+comb_res_d  = zeros(size(lfa));
 comb_res_2k = zeros(size(lfa));
 
 tic % ~ 12 hours to run for 3. 
@@ -212,17 +215,17 @@ figure; imshow3Dfull(M0b_2k, [0 0.15],jet)
 
 
 % Save results incase you need to go back, since they take a while to generate!
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/M0b_singlefit.mnc'); niak_write_minc3D(hdr,M0b_s);
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/M0b_dualfit.mnc'); niak_write_minc3D(hdr,M0b_d);
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/M0b_2k.mnc'); niak_write_minc3D(hdr,M0b_2k);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/M0b_singlefit.mnc'); niak_write_vol(hdr,M0b_s);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/M0b_dualfit.mnc'); niak_write_vol(hdr,M0b_d);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/M0b_2k.mnc'); niak_write_vol(hdr,M0b_2k);
 
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/fit_qual_mask_single.mnc'); niak_write_minc3D(hdr,fit_qual_s);
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/fit_qual_mask_dual.mnc'); niak_write_minc3D(hdr,fit_qual_d);
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/fit_qual_mask_2k.mnc'); niak_write_minc3D(hdr,fit_qual_2k);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/fit_qual_mask_single.mnc'); niak_write_vol(hdr,fit_qual_s);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/fit_qual_mask_dual.mnc'); niak_write_vol(hdr,fit_qual_d);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/fit_qual_mask_2k.mnc'); niak_write_vol(hdr,fit_qual_2k);
 
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/comb_residuals_single.mnc'); niak_write_minc3D(hdr,comb_res_s);
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/comb_residuals_dual.mnc'); niak_write_minc3D(hdr,comb_res_d);
-hdr.file_name = strcat(DATADIR,'calc_sat_maps/comb_residuals_2k.mnc'); niak_write_minc3D(hdr,comb_res_2k);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/comb_residuals_single.mnc'); niak_write_vol(hdr,comb_res_s);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/comb_residuals_dual.mnc'); niak_write_vol(hdr,comb_res_d);
+hdr.file_name = strcat(DATADIR,'calc_sat_maps/comb_residuals_2k.mnc'); niak_write_vol(hdr,comb_res_2k);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Now make some plots of my fitted maps to see how they correlate with R1 values
@@ -266,6 +269,7 @@ ft = fittype('poly1');
     ylabel('M_{0,app}^B', 'FontSize', 20, 'FontWeight', 'bold')
     %colorbar('off')
     legend('hide')
+    saveas(gcf,strcat(OutputDirectory,'dual7k_M0bvsR1.png'))
     
     
     
@@ -296,6 +300,7 @@ ft = fittype('poly1');
     ylabel('M_{0,app}^B', 'FontSize', 20, 'FontWeight', 'bold')
      %   colorbar('off')
     legend('hide')
+    saveas(gcf,strcat(OutputDirectory,'single7k_M0bvsR1.png'))
     
  %M0b from 2k sat
     tmp = plot_con(:,4);
@@ -324,6 +329,7 @@ ft = fittype('poly1');
     ylabel('M_{0,app}^B', 'FontSize', 20, 'FontWeight', 'bold')
      %   colorbar('off')
     legend('hide')
+    saveas(gcf,strcat(OutputDirectory,'single2k_M0bvsR1.png'))
     
     
 %% Now add these regression equations to the fitValues structure and save. 

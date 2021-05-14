@@ -44,6 +44,6 @@ Commands that are optional (mainly extra processing step) are labelled with:
 Code included in PCA folder is used to recreate figures from paper, but is not needed for B1 correction of data. 
 
 **If used, please reference the following publication:**
-Rowley, Christopher D., et al. "A model‐based framework for correcting inhomogeneity effects in magnetization transfer saturation and inhomogeneous magnetization transfer saturation maps." Magnetic Resonance in Medicine (2021). https://doi.org/10.1002/mrm.28831
+Rowley, C. D., Campbell, J. S., Wu, Z., Leppert, I. R., Rudko, D. A., Pike, G. B., & Tardif, C. L. (2021). A model‐based framework for correcting inhomogeneity effects in magnetization transfer saturation and inhomogeneous magnetization transfer saturation maps. Magnetic Resonance in Medicine. https://doi.org/10.1002/mrm.28831
 
 **For additional help with this code, contact christopher.rowley@mcgill.ca**

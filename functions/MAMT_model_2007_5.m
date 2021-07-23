@@ -47,7 +47,18 @@ I = eye(3); % identity matrix
 B = [Params.Ra*Params.M0a, Params.Rb*Params.M0b, Bpr0]';
 
 %% Calculate timing variables
-loops = 600;
+% An arbitrary number of loops doesn't make much practical sense,
+% As scanner dummy scans are usually given in terms of time before data is
+% acquire. So I have made this a function of TR now. CR 2021/07/23
+% Set based on giving 5 seconds to get to steady state:
+SS_time = 5;
+loops = ceil(SS_time/ Params.TR);
+
+% for long TR (TR >>100ms) increase this
+if loops < 50
+    loops = loops *10;
+end
+%loops = 600; % old code used this fix value
 
 PulseDur = ceil(Params.pulseDur/stepSize); % iteration number
 %GapDur = Params.pulseGapDur/stepSize; % iteration number
@@ -115,7 +126,7 @@ for i = 1:loops
 
                 diff_val = abs(check_val - prev_val)*100;
 
-                if  diff_val < 0.05
+                if  (diff_val < 0.05) || (i == loops) % This difference will be large if TR is very large % C.R. 2021/07/23
                     f_s = M_t(1,idx)*sin(Params.flipAngle *pi/180); % if it has hit Steady state, finish. 
                     return;
                 else

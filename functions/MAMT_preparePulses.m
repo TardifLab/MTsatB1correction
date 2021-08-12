@@ -24,6 +24,23 @@ elseif  strcmp(Params.SatPulseShape, 'gaussian')
     square_rms = Params.pulseDur*Params.b1.^2;
     sat_amp = sqrt(square_rms /sat_rms);
     satPulse = sat_wind.*sat_amp; % B1 in uT, regenerate hann_wind with the right height
+    
+elseif  strcmp(Params.SatPulseShape, 'fermi')
+    
+    % Code kindly donated from Agâh Karakuzu and http://qmrlab.org/
+    %   Reference: Matt A. Bernstein, Kevin F. Kink and Xiaohong Joe Zhou.
+    %   Handbook of MRI Pulse Sequences, pp. 111, Eq. 4.14, (2004)
+    Trf = Params.pulseDur;
+    slope = Trf/33.81;          % Assuming t0 = 10a  
+
+    t0 = (Trf - 13.81*slope)/2;  
+    sat_wind = 1 ./ ( 1 + exp( (abs(tSat-Trf/2) - t0) ./ slope ) );
+ 
+    % want to get the approximate integral to see the height parameter/ check RMS
+    sat_rms =  trapz(tSat,sat_wind.^2);
+    square_rms = Params.pulseDur*Params.b1.^2;
+    sat_amp = sqrt(square_rms /sat_rms);
+    satPulse = (sat_wind).*sat_amp; % B1 in uT, regenerate hann_wind with the right height
 
 elseif  strcmp(Params.SatPulseShape, 'square')
 

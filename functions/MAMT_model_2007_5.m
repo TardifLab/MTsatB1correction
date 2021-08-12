@@ -1,5 +1,16 @@
 function f_s = MAMT_model_2007_5(Params)
-%% Similar to the MAMT Model from Portnoy and Stanisz (2007)
+%% Recreate the MAMT Model from Portnoy and Stanisz (2007)
+% Changes from V4: 
+% Adapted the dipolar pool equations to the results presented in Lee et al., 2011
+
+% Changes from V3: 
+% converted to a 3 pool model with a dipolar pool (as in Morrison et al
+% 1995)
+
+% Changes from V2:
+% time varying Hanning saturation pulse
+% time varying sinc water excitation pulse
+% option for gaussian or superLorenztian lineshapes
 
 % %% Required Pool values
 % Params.M0a = 1;
@@ -16,14 +27,22 @@ function f_s = MAMT_model_2007_5(Params)
 % % Sequence Parameters
 % Params.pulseTrainLength =1;
 % Params.pulseDur = 5; %ms duration of 1 MT pulse
-% Params.pulseGapDur = 0.25/1000; %ms gap between MT pulses in train
+% Params.GapDur = 0.25/1000; %ms gap between MT pulses in train
 % Params.TR = 8; % total repetition time = MT pulse train and readout.
 % Params.WExcDur = 3/1000; % duration of water pulse
 % Params.numExcitation = 1; % number of readout lines/TR
 % Params.flipAngle = 90; % excitation flip angle water.
 % Params.WExcw1 = Params.flipAngle/(360*Params.WExcDur); % not needed anymore.
 % Params.lineshape = 'gaussian'; % 'gaussian' or 'superLor';
-% Params.SatPulseShape = 'hanning'; % options: 'hanning', 'gaussian', 'square'
+
+if ~isfield(Params,'B0') % if not defined, assume 3T
+    Params.B0 = 3; % main field strength (in Tesla)
+end
+
+if ~isfield(Params,'threshold') % if not defined, have steady state threshold be 0.05%
+    Params.threshold = 0.05; % main field strength (in Tesla)
+end
+
 
 stepSize = 50e-6; % 50 microseconds
 Params.stepSize = stepSize;
@@ -76,13 +95,13 @@ TR_fill = Params.TR - (Params.numSatPulse)*( Params.pulseDur + Params.pulseGapDu
 %TR_fillDur = TR_fill/stepSize;
 
 %% Calculation
-M_t = zeros(3,TRDur*loops +1);
-M_t(:,1) = M0;
+M_t = zeros(4,TRDur*loops +1); % Aug added time to 4th row
+M_t(1:3,1) = M0;
 idx = 2;
 prev_val = 0;
 
 % calculate time-vary RF pulses...
-[satPulse, sinc_ExcPulse] = MAMT_preparePulses(Params);
+[hann_satPulse, sinc_ExcPulse] = MAMT_preparePulses(Params);
 
 for i = 1:loops
     %m %report progress...
@@ -103,11 +122,12 @@ for i = 1:loops
                 Params.delta = ref_delta; % dualContinuous handled in matrix calc
             end
                         
-            Params.w1 = 2*pi *satPulse(k) .* 42.57747892;
+            Params.w1 = 2*pi *hann_satPulse(k) .* 42.57747892;
             t = stepSize;
 
             A = calc_RF_matrix_wDipolar2(Params); % update the RF values in matrix
-            M_t(:,idx) = expm(A*t) * M_t(:,idx-1) + (expm(A*t) - I)* (A\B); % Update Magnetization.                           
+            M_t(1:3,idx) = expm(A*t) * M_t(1:3,idx-1) + (expm(A*t) - I)* (A\B); % Update Magnetization. 
+            M_t(4,idx) = M_t(4, idx-1) + t;
             
             idx = idx +1;    
         end    
@@ -119,14 +139,18 @@ for i = 1:loops
             t = Params.pulseGapDur; % calculate the whole relaxation at once for speed
 
             A = calc_RF_matrix_wDipolar2(Params); % update the RF values in matrix
-            M_t(:,idx) = expm(A*t) * M_t(:,idx-1) + (expm(A*t) - I)* (A\B); % Update Magnetization.                           
+            M_t(1:3,idx) = expm(A*t) * M_t(1:3,idx-1) + (expm(A*t) - I)* (A\B); % Update Magnetization. 
+            M_t(4,idx) = M_t(4, idx-1) + t;
             
-            if (j == Params.numSatPulse) % && (k == GapDur)
+            if (j == Params.numSatPulse)
                 check_val = M_t(1,idx);
 
                 diff_val = abs(check_val - prev_val)*100;
 
-                if  (diff_val < 0.05) || (i == loops) % This difference will be large if TR is very large % C.R. 2021/07/23
+                if i < 3 % set minimum number of loops
+                    prev_val = check_val;
+                    
+                elseif (diff_val < 0.05) || (i == loops) % This difference will be large if TR is very large
                     f_s = M_t(1,idx)*sin(Params.flipAngle *pi/180); % if it has hit Steady state, finish. 
                     return;
                 else
@@ -147,7 +171,8 @@ for i = 1:loops
             t = stepSize;
             
             A = calc_RF_matrix_wDipolar2(Params); % update the RF values in matrix
-            M_t(:,idx) = expm(A*t) * M_t(:,idx-1) + (expm(A*t) - I)* (A\B); % Update Magnetization.     
+            M_t(1:3,idx) = expm(A*t) * M_t(1:3,idx-1) + (expm(A*t) - I)* (A\B); % Update Magnetization.  
+            M_t(4,idx) = M_t(4, idx-1) + t;
             
             idx = idx +1;   
             if k == WExcDur
@@ -163,7 +188,8 @@ for i = 1:loops
                 t = echoSpacing; % calculate the whole relaxation at once for speed
                 
                 A = calc_RF_matrix_wDipolar2(Params); % update the RF values in matrix
-                M_t(:,idx) = expm(A*t) * M_t(:,idx-1) + (expm(A*t) - I)* (A\B); % Update Magnetization.
+                M_t(1:3,idx) = expm(A*t) * M_t(1:3,idx-1) + (expm(A*t) - I)* (A\B); % Update Magnetization.
+                M_t(4,idx) = M_t(4, idx-1) + t;
         
                 idx = idx +1;  
             end
@@ -178,7 +204,8 @@ for i = 1:loops
         t = TR_fill; % calculate the whole relaxation at once for speed
 
         A = calc_RF_matrix_wDipolar2(Params); % update the RF values in matrix
-        M_t(:,idx) = expm(A*t) * M_t(:,idx-1) + (expm(A*t) - I)* (A\B); % Update Magnetization.
+        M_t(1:3,idx) = expm(A*t) * M_t(1:3,idx-1) + (expm(A*t) - I)* (A\B); % Update Magnetization.
+        M_t(4,idx) = M_t(4, idx-1) + t;
 
         idx = idx +1;  
     end
@@ -186,12 +213,15 @@ for i = 1:loops
 end
 
 
-%% Use this to trouble shoot and visualize the magnetization vectors
+% %% Use this to trouble shoot and visualize the magnetization vectors
 % M_t(:,idx:end) = [];
 % 
-% figure; plot(M_t(1,:))
-% figure; plot(M_t(2,:))
+% figure; plot(M_t(4,:), M_t(1,:))
+% Params.delta = ref_delta;
 % 
+% 
+% figure; plot(M_t(4,:), M_t(2,:))
+
 
 
 

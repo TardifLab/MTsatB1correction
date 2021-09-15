@@ -335,6 +335,7 @@ set(gcf,'ResizeFcn', @figureResized)
 
 % -=< Axial view callback function >=-
     function AxialView(object,eventdata)
+    	colorbar off    
         if View == 'S'
             S_s = S;
         elseif View == 'C'
@@ -366,10 +367,12 @@ set(gcf,'ResizeFcn', @figureResized)
         set(get(gca,'children'),'cdata',squeeze(Img(:,:,S,:)))
         set (gcf, 'ButtonDownFcn', @mouseClick);
         set(get(gca,'Children'),'ButtonDownFcn', @mouseClick);
+	colorbar
     end
 
 % -=< Sagittal view callback function >=-
     function SagittalView(object,eventdata)
+    	colorbar off
         if View == 'A'
             S_a = S;
         elseif View == 'C'
@@ -401,11 +404,13 @@ set(gcf,'ResizeFcn', @figureResized)
         set(get(gca,'children'),'cdata',squeeze(Img(:,:,S,:)))
         set (gcf, 'ButtonDownFcn', @mouseClick);
         set(get(gca,'Children'),'ButtonDownFcn', @mouseClick);
+	colorbar
 
     end
 
 % -=< Coronal view callback function >=-
     function CoronalView(object,eventdata)
+    	colorbar off
         if View == 'A'
             S_a = S;
         elseif View == 'S'
@@ -437,6 +442,7 @@ set(gcf,'ResizeFcn', @figureResized)
         set(get(gca,'children'),'cdata',squeeze(Img(:,:,S,:)))
         set (gcf, 'ButtonDownFcn', @mouseClick);
         set(get(gca,'Children'),'ButtonDownFcn', @mouseClick);
+	colorbar
     end
 
 end

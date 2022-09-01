@@ -156,7 +156,7 @@ mob = q.*0; fitq = mob; comb = mob;
 if license('test','distrib_computing_toolbox')
     parfor qi = 1:length(q)
         try
-             [mob(qi), fitq(qi), comb(qi)] = CR_fit_M0b_v1( b1_rms*b1_(qi), R1_s(qi), mtsat(qi),fitValues);
+             [mob(qi), fitq(qi), comb(qi)] = CR_fit_M0b_v1( b1_rms*b1_(qi), r1s(qi), mtsat(qi),fitValues);
         catch ME
             disp(['qi:' num2str(qi) '; q: ' num2str(q(qi))])
             disp(ME.message)
@@ -166,7 +166,7 @@ else
 
     for qi = 1:length(q)
         try
-             [mob(q), fitq(q), comb(q)]  = CR_fit_M0b_v1( b1_rms*b1_(q), R1_s(q), mtsat(q),fitValues);
+             [mob(q), fitq(q), comb(q)]  = CR_fit_M0b_v1( b1_rms*b1_(q), r1s(q), mtsat(q),fitValues);
         catch ME
             disp(['qi:' num2str(qi) '; q: ' num2str(q(qi))])
             disp(ME.message)

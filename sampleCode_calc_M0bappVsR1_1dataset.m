@@ -42,6 +42,8 @@ figure; imshow3Dfull(lfa, [200 600],jet)
 %% Load B1 map and set up b1 matrices
 
 % B1 nominal and measured -> USER DEFINED
+% to calculate you need the duration in seconds, and flip angle of the pulse in degrees 
+% b1_rms = flipAngle / (360 * 42.577 * pulseDuration);
 b1_rms = [6.8];  % value in microTesla. Nominal value for the MTsat pulses 
 
 % load B1 map -> USER DEFINED

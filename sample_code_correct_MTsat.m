@@ -127,7 +127,7 @@ fitValues = fitValues.fitValues;
 R1_s = R1* 1000; % convert from 1/ms to 1/s
 
 %% Generate MTsat correction factor map. 
-CF_MTsat = MTsat_B1corr_factor_map(b1_gauss, R1_s, b1_rms,fitValues);
+CF_MTsat = MTsat_B1corr_factor_map(b1, R1_s, b1_rms,fitValues);
 
 %% Correct the maps
 MTsat_b1corr  = MTsat  .* (1+ CF_MTsat)  .* mask;

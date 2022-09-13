@@ -82,19 +82,17 @@ figure; imshow3Dfullseg(lfa, [150 600], mask)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Calculate A0 and R1
-low_flip_angle = 5;    % flip angle in degrees % -> USER DEFINED
-high_flip_angle = 20;  % flip angle in degrees % -> USER DEFINED
-TR = 30;               % repetition time of the GRE kernel in milliseconds % -> USER DEFINED
+low_flip_angle = 5;    % flip angle in degrees -> USER DEFINED
+high_flip_angle = 20;  % flip angle in degrees -> USER DEFINED
+TR1 = 30;               % low flip angle repetition time of the GRE kernel in milliseconds -> USER DEFINED
+TR2 = 30;               % high flip angle repetition time of the GRE kernel in milliseconds -> USER DEFINED
 
-a1 = low_flip_angle*pi/180 .* b1;
+a1 = low_flip_angle*pi/180 .* b1; % note the inclusion of b1 here.
 a2 = high_flip_angle*pi/180 .* b1; 
 
-R1 = 0.5 .* (hfa.*a2./ TR - lfa.*a1./TR) ./ (lfa./(a1) - hfa./(a2));
-R1 = R1.*mask;
+R1 = 0.5 .* (hfa.*a2./ TR2 - lfa.*a1./TR1) ./ (lfa./(a1) - hfa./(a2)) .* mask;
+App = lfa .* hfa .* (TR1 .* a2./a1 - TR2.* a1./a2) ./ (hfa.* TR1 .*a2 - lfa.* TR2 .*a1) .* mask;
 T1 = 1/R1  .* mask;
-
-App = lfa .* hfa .* (TR .* a2./a1 - TR.* a1./a2) ./ (hfa.* TR .*a2 - lfa.* TR .*a1);
-App = App .* mask;
 
 %check them
 figure; imshow3Dfull(T1, [0 3500],jet)

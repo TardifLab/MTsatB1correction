@@ -121,7 +121,7 @@ TR = 28; % -> USER DEFINED
 a_MTw_r = readout_flip /180 *pi;
 
 % calculate maps as per Helms et al 2008. Note: b1 is included here for flip angle
-MTsat = (App.* (a_MTw_r*b1)./ mtw1_dual_proc - 1) .* (R1) .* TR - ((a_MTw_r*b1).^2)/2;
+MTsat = (App.* (a_MTw_r*b1)./ mtw - 1) .* (R1) .* TR - ((a_MTw_r*b1).^2)/2;
 
 % check them, did it work?
 %figure; imshow3Dfull(MTsat, [0 0.03],jet)

@@ -1,5 +1,8 @@
 # Model based B1 correction of MTsat Maps
 
+**Note: this code is as used for the referenced manuscript. However, it is suggested you use the most recent version of this framework, which can be found here: https://github.com/TardifLab/OptimizeIHMTimaging/tree/master/b1Correction**
+
+
 **This MATLAB code is designed to generate a correction curve to be able to correct MTsat for B1 errors.**
 ## Requirements:
 - MTsat data (MT-weighted image, low flip angle and high flip angle image)
@@ -46,4 +49,4 @@ Code included in PCA folder is used to recreate figures from paper, but is not n
 **If used, please reference the following publication:**
 Rowley, C. D., Campbell, J. S., Wu, Z., Leppert, I. R., Rudko, D. A., Pike, G. B., & Tardif, C. L. (2021). A model‐based framework for correcting inhomogeneity effects in magnetization transfer saturation and inhomogeneous magnetization transfer saturation maps. Magnetic Resonance in Medicine. https://doi.org/10.1002/mrm.28831
 
-**For additional help with this code, contact christopher.rowley@mcgill.ca**
+**For additional help with this code, contact rowleycd@mcmaster.ca**
